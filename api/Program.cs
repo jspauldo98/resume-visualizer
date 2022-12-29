@@ -1,14 +1,20 @@
 using AutoMapper;
 using MySqlConnector;
 
+using api.Utility;
+using api.Utility.Validation;
+
 var builder = WebApplication.CreateBuilder(args);
 
+//* Conneciton Strings configuration
 builder.Configuration.AddJsonFile("connectionStrings.json");
 builder.Services.AddTransient<MySqlConnection>(_ => new MySqlConnection(builder.Configuration.GetConnectionString("SbConnection")));
 
+//* Endpoint Configuration
 builder.Services.AddControllers();
 builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
 
+//* Cors Configuration
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("VueCorsPolicy", b =>
@@ -21,9 +27,21 @@ builder.Services.AddCors(options =>
   });
 });
 
-// TODO - auto mapper configuration here
+//* Configuration for AutoMapper
+var config = new MapperConfiguration(cfg =>
+{
 
-// TODO - Dependency injection declarations here
+});
+builder.Services.AddSingleton(config.CreateMapper());
+
+//* Dependency Injection  Declaration
+// Utility Layer
+builder.Services.AddScoped<IXfrHandler, XfrHandler>();
+builder.Services.AddScoped<IValidationFactory, ValidationFactory>();
+builder.Services.AddSingleton<IValidationHandler, ValidationHandler>();
+
+// Logic Layer
+// Repository Layer
 
 var app = builder.Build();
 app.UseRouting();
